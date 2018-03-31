@@ -28,7 +28,7 @@ LiquidCrystal lcd(8, 7, 5, 4, 3, 6);  // the last pin had a default (sample prog
 const int chipSelect = 10;
 unsigned long trigger_time=0;
 unsigned long last_trigger_time=0;
-unsigned long time_interval;
+int time_interval;
 float speedo=0;
 float voltage;
 float current;
@@ -46,7 +46,9 @@ void setup() {
   lcd.begin(16, 2);
 
   //welcome driver
-  lcd.print("Welcome to car 123.");
+  lcd.print("Welcome to car");
+  lcd.setCursor(0,1);
+  lcd.print("123.");
   delay(1000);
   lcd.clear();
   
@@ -58,17 +60,13 @@ void setup() {
   currentZero=analogRead(currentPIN);
   lcd.clear();
   delay(500);
-  lcd.setCursor(15,1);
-  lcd.blink();
-  delay(2000);
-  lcd.clear();
-  
+    
   //Initialize pin functions
   pinMode(writeLED, OUTPUT);
   pinMode(triggerLED, OUTPUT);
 
-  //attach interrupt so that every time the magnet passes the sensor the SpeedCalc function will update the speed (speedo)
-  attachInterrupt(0,SpeedCalc,FALLING);  //attach speed sensor to digital pin 2
+  //attach interrupt so that every time the magnet passes the sensor the time_period function will update the period of rotation (time_interval)
+  attachInterrupt(0,time_period,FALLING);  //attach speed sensor to digital pin 2
 
   // see if the card is present and can be initialized, and communicate SD status to LCD
   if (!SD.begin(chipSelect)) {
@@ -102,6 +100,7 @@ void loop() {
   }
 
   //measuring analog sensors and converting
+  speedo=1000*1.25/time_interval;
   rawCurrent=analogRead(currentPIN);
   current=(float(analogRead(currentPIN)-currentZero))/1023*5/0.0098;  //difference from zero converted to voltage, then current with 40mV per amp, according to manufacturer
   if (current<0.7){
@@ -114,7 +113,7 @@ void loop() {
   lcd.setCursor(0,0);
   lcd.print("Spd  Pwr  Vlt");
   lcd.setCursor(0,1);
-  lcd.print(speedo,places1);
+  lcd.print(time_interval);
   lcd.setCursor(5,1);
   lcd.print(current*voltage,places0);
   lcd.setCursor(10,1);
@@ -142,14 +141,12 @@ void loop() {
   }
 }
 
-void SpeedCalc(){
+int time_period(){
   trigger_time=millis();
-  digitalWrite(triggerLED,HIGH);
-  time_interval=trigger_time-last_trigger_time;
-  if (time_interval>100){  //time delay debounce (stops multiple triggers at once)
-    speedo=1000.0*0.5/time_interval;
+  if (trigger_time-last_trigger_time>10){
+    time_interval=trigger_time-last_trigger_time;
+    last_trigger_time=trigger_time;
   }
-  last_trigger_time=trigger_time;
 }
 
 
