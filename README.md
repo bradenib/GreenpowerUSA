@@ -1,3 +1,5 @@
 # GreenpowerUSA
-Arduino files for datalogger and display
-***Plenty of comments in the code.***
+
+Software, Data, and other records from the Lamar Academy team in McAllen, Texas.
+
+Check out the [wiki](https://github.com/bradenib/GreenpowerUSA/wiki).
